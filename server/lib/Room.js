@@ -1776,6 +1776,77 @@ class Room extends EventEmitter
 			logger.warn('_createDataConsumer() | failed:%o', error);
 		}
 	}
+
+    /**
+	 * Connect a Broadcaster mediasoup PlainTransport.
+	 *
+	 * @async
+	 *
+	 * @type {String} ip 
+	 * @type {String} port 
+	 * @type {String} rtcpport
+	 */
+	async plainConnect(
+		{
+			broadcasterId,
+			transportId,
+		    ip, port, rtcpport, srtpParameters
+		}
+	)
+	{
+		const broadcaster = this._broadcasters.get(broadcasterId);
+
+		if (!broadcaster)
+			throw new Error(`broadcaster with id "${broadcasterId}" does not exist`);
+
+		const transport = broadcaster.data.transports.get(transportId);
+
+		if (!transport)
+			throw new Error(`transport with id "${transportId}" does not exist`);
+
+		if (transport.constructor.name !== 'PlainTransport')
+		{
+			throw new Error(
+				`transport with id "${transportId}" is not a PlainTransport`);
+		}
+
+		await transport.connect({ ip, port, rtcpport, srtpParameters });
+	}
+
+    async consumerResume(
+		{
+			broadcasterId, 
+			consumeId
+		}
+    )
+    {
+		const broadcaster = this._broadcasters.get(broadcasterId);
+
+		if (!broadcaster)
+			throw new Error(`broadcaster with id "${broadcasterId}" does not exist`);
+        const consumer = broadcaster.data.consumers.get(consumeId);
+		if (!consumer)
+			throw new Error(`consumer with id "${consumeId}" does not exist`);
+        await consumer.resume();
+    }
+
+    async consumerRequestKeyFrame(
+		{
+			broadcasterId, 
+			consumeId
+		}
+    )
+    {
+		const broadcaster = this._broadcasters.get(broadcasterId);
+
+		if (!broadcaster)
+			throw new Error(`broadcaster with id "${broadcasterId}" does not exist`);
+        const consumer = broadcaster.data.consumers.get(consumeId);
+		if (!consumer)
+			throw new Error(`consumer with id "${consumeId}" does not exist`);
+        await consumer.requestKeyFrame();
+    }
+
 }
 
 module.exports = Room;

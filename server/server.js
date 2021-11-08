@@ -415,6 +415,72 @@ async function createExpressApp()
 				next();
 			}
 		});
+    /**
+	 * POST API to transport.plainconnect.
+	 */
+     expressApp.post(
+         '/rooms/:roomId/broadcasters/:broadcasterId/transports/:transportId/plainconnect',
+    	async(req, res, next) => {
+			const { broadcasterId, transportId } = req.params;
+			const { ip, port, rtcpport, srtpParameters } = req.body;
+			try {
+				const data = await req.room.plainConnect(
+					{
+						broadcasterId, 
+						transportId,
+                        ip, port, rtcpport, srtpParameters
+					});
+ 
+				res.status(200).json(data);
+			} 
+			catch (error) {
+				next(error);
+			}
+	    });
+
+    /**
+       * POST API to consume.resume
+    */
+	expressApp.post(
+		'/rooms/:roomId/broadcasters/:broadcasterId/consume/:consumeId/resume',
+		async (req, res, next) => {
+			const {broadcasterId, consumeId} = req.params;
+ 
+			try {
+				const data = await req.room.consumerResume(
+					{
+						broadcasterId, 
+						consumeId
+					});
+ 
+				res.status(200).json(data);
+			} 
+			catch (error) {
+				next(error);
+			}
+		});
+
+    /**
+	 * POST API to consume.requestKeyFrame.
+	 */
+     expressApp.post(
+        '/rooms/:roomId/broadcasters/:broadcasterId/consume/:consumeId/requestKeyFrame',
+    	async(req, res, next) => {
+			const {broadcasterId, consumeId} = req.params;
+ 
+			try {
+				const data = await req.room.consumerRequestKeyFrame(
+					{
+						broadcasterId, 
+						consumeId
+					});
+ 
+				res.status(200).json(data);
+			} 
+			catch (error) {
+				next(error);
+			}
+        });
 }
 
 /**
