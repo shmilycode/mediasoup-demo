@@ -3,10 +3,11 @@ o=- 0 0 IN IP4 127.0.0.1
 s=ffmpeg
 c=IN IP4 10.90.191.186
 t=0 0
-m=video 30000 RTP/AVPF 101 102
-a=rtpmap:101 VP8/90000
+m=video 30020 RTP/AVPF 101 102 
+a=rtpmap:101 H264/90000
 a=rtpmap:102 rtx/90000
-a=fmtp:102 apt=101d
+a=fmtp:101 level-asymmetry-allowed=1;packetization-mode=1;profile-level-id=42e01f
+a=fmtp:101 apt=102
 a=extmap:4 urn:3gpp:video-orientation
 a=setup:active
 a=mid:1

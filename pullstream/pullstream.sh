@@ -53,8 +53,6 @@ BROADCASTER_ID=$(LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w ${1:-32} |
 HTTPIE_COMMAND="http --check-status --verify=no"
 VIDEO_SSRC=128827720
 VIDEO_PT=101
- 
- 
 #
 # Verify that a room with id ROOM_ID does exist by sending a simlpe HTTP GET.
 # If not abort since we are not allowed to initiate a room..
@@ -114,8 +112,8 @@ echo ">>> PlainTransport Connect ..."
 ${HTTPIE_COMMAND} -v \
 	POST ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID}/transports/${transportId}/plainconnect \
 	ip="127.0.0.1" \
-	port:=30000 \
-	rtcpport:=30001 \
+	port:=${RTP_PORT} \
+	rtcpport:=${RTCP_PORT} \
 	> /dev/null
  
 #echo ${res}
@@ -138,17 +136,19 @@ ${HTTPIE_COMMAND} -v \
 	POST ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID}/consume/${consumeId}/resume \
 		> /dev/null
  
+runAfterSleep() {
+    local duration=$1
+    local command=$2
+    local echoMessage=$3
+    sleep ${duration}
+    echo ${echoMessage}
+    ${HTTPIE_COMMAND} -v POST ${command} > /dev/null
+}
  
-echo ">>> request keyFrame..."
- 
-${HTTPIE_COMMAND} -v \
-	POST ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID}/consume/${consumeId}/requestKeyFrame \
-		> /dev/null
- 
- 
+runAfterSleep 1s ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID}/consume/${consumeId}/requestKeyFrame ">>> request keyFrame..." &
  
 echo ">>> running ffmpeg..."
- 
-ffmpeg -thread_queue_size 1024 -protocol_whitelist "file,udp,rtp" -i video.sdp -vcodec copy -y ${MEDIA_FILE} -v debug
+#ffmpeg -thread_queue_size 1024 -protocol_whitelist "file,udp,rtp" -i ${SDP_FILE} -vcodec copy -y ${MEDIA_FILE} -v trace
+ffplay -flags low_delay -probesize 32 -analyzeduration 0 -sync ext -protocol_whitelist "file,udp,rtp" -i ${SDP_FILE} -v debug
 # ffmpeg -thread_queue_size 1024 -protocol_whitelist "file,udp,rtp" -i video.sdp -vcodec h264 -y output.mp4
 # ffmpeg -protocol_whitelist "file,udp,rtp" -i video.sdp -vcodec copy -f rtp_mpegts rtp://192.168.12.90:10000
